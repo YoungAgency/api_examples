@@ -7,8 +7,9 @@ node index.js
 ```
 
 ## Balances (BAL)
-You will receive a list of all balances on this channel when you connect to the websocket.
-You will receive updates on this channel when balance is updated.
+You will receive:
+- a list of all balances on this channel when you connect to the websocket.
+- object when balance is updated
 ### First message
 ```json
 {
@@ -43,7 +44,7 @@ You will receive updates on this channel when balance is updated.
 ```
 
 
-# Order Update (PO)
+# Order Update (OU)
 You will receive order updates on this channel when
 - order is matched
 - order is closed
