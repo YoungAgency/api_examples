@@ -1,6 +1,8 @@
 # Websocket API
 
 ```sh
+export YOUNG_API_SECRET=foobar
+export YOUNG_API_KEY=foobar
 cd socket/js
 npm install
 node index.js 

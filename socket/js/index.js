@@ -45,7 +45,7 @@ ws.on('open', () => {
 
 ws.on('message', (message) => {
     // console.log(`Received message from server: ${message}`);
-    console.log(message.toString());
+    // console.log(message.toString());
     var parsedMessage = JSON.parse(message);
     if (parsedMessage.data === 'logged') {
         // subscribe to balance
@@ -74,6 +74,15 @@ ws.on('message', (message) => {
             }
         }
         ws.send(JSON.stringify(subscribePayload));
+
+        subscribePayload = {
+            op: 'SUBSCRIBE',
+            channel: 'PT',
+            data: {
+                pairs: ['BTC-EUR']
+            }
+        }
+        ws.send(JSON.stringify(subscribePayload));
     } else {
         switch (parsedMessage.channel) {
             case 'BAL':
@@ -84,6 +93,9 @@ ws.on('message', (message) => {
                 break;
             case 'OB':
                 console.log('Order book update: ', parsedMessage.data);
+                break;
+            case 'PT':
+                console.log('Public Trades update: ', parsedMessage.data);
                 break;
             default:
                 console.log('Unknown channel: ', parsedMessage.channel, message.toString());
