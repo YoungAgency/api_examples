@@ -72,3 +72,34 @@ You will receive order updates on this channel when
     }
 }
 ```
+
+# Public Trades
+```json
+{
+    "status": "success",
+    "channel": "PT",
+    "data": {
+        "pair": "BTC-EUR",
+        "trades": [
+            {
+                "OrderID": 1697189430248568546,
+                "CurrencyType": "BTC",
+                "MarketType": "EUR",
+                "OrderConfirmDate": "2023-10-13T09:30:30.248Z",
+                "Volume": 0.00050000,
+                "Rate": 25357.20000000,
+                "ExecutionType": "SELL"
+            },
+            {
+                "OrderID": 1697188785077629653,
+                "CurrencyType": "BTC",
+                "MarketType": "EUR",
+                "OrderConfirmDate": "2023-10-13T09:19:45.077Z",
+                "Volume": 0.00039000,
+                "Rate": 25503.27000000,
+                "ExecutionType": "BUY"
+            }
+        ]
+    }
+}
+```
