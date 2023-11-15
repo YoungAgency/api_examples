@@ -103,3 +103,46 @@ You will receive order updates on this channel when
     }
 }
 ```
+
+# OrderBook Update
+```json
+{
+    "status": "success",
+    "channel": "OB",
+    "data": {
+        "pair": "BTC-EUR",
+        "updates": {
+            "bids": {
+                "inserted": [
+                    [
+                        33084.15000000,
+                        0.01345200
+                    ]
+                ],
+                "removed": [
+                    [
+                        33084.17000000,
+                        0.0
+                    ]
+                ],
+                "changed": [
+                    [
+                        33085.15000000,
+                        0.01449700
+                    ]
+                ]
+            },
+            "asks": {
+                "inserted": [
+                    [
+                        33187.82000000,
+                        0.02850000
+                    ]
+                ],
+                "removed": [],
+                "changed": []
+            }
+        }
+    }
+}
+```
