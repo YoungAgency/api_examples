@@ -146,3 +146,41 @@ You will receive order updates on this channel when
     }
 }
 ```
+
+
+# OrderBook Incremental
+New stream with sequence number
+- connect to socket and buffer events
+- use `/api/v3/orderbook/:pair/snapshot` to get the current orderbook snapshot
+- first socket event must have `sn = snapshot_sn + 1`
+- process incremental updates
+```json
+{
+    "status": "success",
+    "channel": "OBI",
+    "data": [
+        "BTC_EUR", // pair
+        [ // buys
+            [
+                40000.0,
+                3.0,
+                2 // update
+            ],
+            [
+                39990.0,
+                3.0,
+                1 // insert
+            ],
+        ],
+        [ // sells
+            [
+                41000.0,
+                0.0,
+                3 // delete
+            ]
+        ],
+        747, // sequence number
+        1705782984348 // timestamp
+    ]
+}
+````

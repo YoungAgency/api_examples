@@ -48,12 +48,13 @@ ws.on('message', (message) => {
     // console.log(message.toString());
     var parsedMessage = JSON.parse(message);
     if (parsedMessage.data === 'logged') {
+        
         // subscribe to balance
         var subscribePayload = {
             op: 'SUBSCRIBE',
             channel: 'BAL'
         }
-        ws.send(JSON.stringify(subscribePayload));
+        // ws.send(JSON.stringify(subscribePayload));
 
         // subscribe to order update for BTC-EUR
         subscribePayload = {
@@ -68,7 +69,7 @@ ws.on('message', (message) => {
         // subscribe to order book update for BTC-EUR
         subscribePayload = {
             op: 'SUBSCRIBE',
-            channel: 'OB',
+            channel: 'OBI',
             data: {
                 pairs: ['BTC-EUR']
             }
@@ -82,7 +83,7 @@ ws.on('message', (message) => {
                 pairs: ['BTC-EUR']
             }
         }
-        ws.send(JSON.stringify(subscribePayload));
+        // ws.send(JSON.stringify(subscribePayload));
     } else {
         switch (parsedMessage.channel) {
             case 'BAL':
@@ -91,7 +92,7 @@ ws.on('message', (message) => {
             case 'OU':
                 console.log('Order update: ', parsedMessage.data);
                 break;
-            case 'OB':
+            case 'OBI':
                 console.log('Order book update: ', parsedMessage.data);
                 break;
             case 'PT':
