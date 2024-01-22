@@ -54,7 +54,7 @@ ws.on('message', (message) => {
             op: 'SUBSCRIBE',
             channel: 'BAL'
         }
-        // ws.send(JSON.stringify(subscribePayload));
+        ws.send(JSON.stringify(subscribePayload));
 
         // subscribe to order update for BTC-EUR
         subscribePayload = {
@@ -69,12 +69,12 @@ ws.on('message', (message) => {
         // subscribe to order book update for BTC-EUR
         subscribePayload = {
             op: 'SUBSCRIBE',
-            channel: 'OBI',
+            channel: 'OB',
             data: {
                 pairs: ['BTC-EUR']
             }
         }
-        ws.send(JSON.stringify(subscribePayload));
+        // ws.send(JSON.stringify(subscribePayload));
 
         subscribePayload = {
             op: 'SUBSCRIBE',
