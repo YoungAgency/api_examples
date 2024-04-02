@@ -151,7 +151,7 @@ You will receive order updates on this channel when
 # OrderBook Incremental
 New stream with sequence number
 - connect to socket and buffer events
-- use `/api/v3/orderbook/:pair/snapshot` to get the current orderbook snapshot
+- use `/api/v3/orderbook/:pair/snapshot?levels=50` to get the current orderbook snapshot
 - first socket event must have `sn = snapshot_sn + 1`
 - process incremental updates
 ```json
