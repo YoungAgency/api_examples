@@ -65,17 +65,18 @@ ws.on('message', (message) => {
             }
         }
         ws.send(JSON.stringify(subscribePayload));
-
+        
         // subscribe to order book update for BTC-EUR
         subscribePayload = {
             op: 'SUBSCRIBE',
-            channel: 'OB',
+            channel: 'OBI',
             data: {
                 pairs: ['BTC-EUR']
             }
         }
-        // ws.send(JSON.stringify(subscribePayload));
+        ws.send(JSON.stringify(subscribePayload));
 
+        /*
         subscribePayload = {
             op: 'SUBSCRIBE',
             channel: 'PT',
@@ -84,6 +85,13 @@ ws.on('message', (message) => {
             }
         }
         // ws.send(JSON.stringify(subscribePayload));
+        */
+
+        statusPayload = {
+            op: 'STATUS'
+        }
+        console.log(JSON.stringify(statusPayload))
+        ws.send(JSON.stringify(statusPayload));
     } else {
         switch (parsedMessage.channel) {
             case 'BAL':
