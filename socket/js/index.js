@@ -55,6 +55,16 @@ ws.on('message', (message) => {
             channel: 'BAL'
         }
         ws.send(JSON.stringify(subscribePayload));
+
+        // subscribe to order update for BTC-EUR
+        subscribePayload = {
+            op: 'SUBSCRIBE',
+            channel: 'OU',
+            data: {
+                pairs: ['BTC-EUR']
+            }
+        }
+        ws.send(JSON.stringify(subscribePayload));
         
         // subscribe to order book update for BTC-EUR
         subscribePayload = {
@@ -86,6 +96,9 @@ ws.on('message', (message) => {
         switch (parsedMessage.channel) {
             case 'BAL':
                 console.log('Balance update: ', parsedMessage.data);
+                break;
+            case 'OU':
+                console.log('Order update: ', parsedMessage.data);
                 break;
             case 'OBI':
                 console.log('Order book update: ', parsedMessage.data);
