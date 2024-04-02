@@ -19,12 +19,12 @@ You will receive:
     "channel": "BAL",
     "data": [
         {
-            "currency": "1INCH",
+            "currency": "BTC",
             "balance": 0.0,
             "balanceInTrade": 0.0
         },
         {
-            "currency": "AAVE",
+            "currency": "EUR",
             "balance": 0.0,
             "balanceInTrade": 0.0
         }
@@ -47,9 +47,22 @@ You will receive:
 
 
 # Order Update (OU)
-You will receive order updates on this channel when
+You will receive order updates on this channel when:
 - order is matched
 - order is closed
+
+### Payload
+```json
+{
+    "op": "SUBSCRIBE",
+    "channel": "OU",
+    "data": {
+        "pairs": ["BTC-EUR"]
+    }
+}
+```
+
+### Event
 ```json
 {
     "status": "success",
@@ -82,7 +95,7 @@ You will receive order updates on this channel when
         "pair": "BTC-EUR",
         "trades": [
             {
-                "OrderID": 1697189430248568546,
+                "OrderID": 1697189546,
                 "CurrencyType": "BTC",
                 "MarketType": "EUR",
                 "OrderConfirmDate": "2023-10-13T09:30:30.248Z",
@@ -91,7 +104,7 @@ You will receive order updates on this channel when
                 "ExecutionType": "SELL"
             },
             {
-                "OrderID": 1697188785077629653,
+                "OrderID": 1697629653,
                 "CurrencyType": "BTC",
                 "MarketType": "EUR",
                 "OrderConfirmDate": "2023-10-13T09:19:45.077Z",
@@ -105,11 +118,25 @@ You will receive order updates on this channel when
 ```
 
 # OrderBook Incremental
-New stream with sequence number
-- connect to socket and buffer events
-- use `/api/v3/orderbook/:pair/snapshot?levels=50` to get the current orderbook snapshot
-- first socket event must have `sn = snapshot_sn + 1`
-- process incremental updates
+
+- make an HTTP GET request to the `/api/v3/orderbook/:pair/snapshot?levels=50` endpoint to fetch the current order book snapshot for the specified trading pair. This snapshot will provide the initial state of the order book.
+
+- once the snapshot is received, process it accordingly. Ensure that the sequence number (sn) of the first event processed from the WebSocket stream is equal to the sn of the snapshot plus one. This ensures that you're starting with the correct sequence number for subsequent incremental updates.`sn = snapshot_sn + 1`
+
+- after processing the snapshot, continue listening to the WebSocket stream for incremental updates to the order book. Each update will have its own sequence number (sn). Verify that the sequence number of each incremental update is equal to the snapshot's sequence number plus one. If this condition is not met you must re-request the snapshot.
+
+### Payload
+```json
+{
+    "op": "SUBSCRIBE",
+    "channel": "OBI",
+    "data": {
+        "pairs": ["BTC-EUR"]
+    }
+}
+```
+
+### Event
 ```json
 {
     "status": "success",
@@ -119,20 +146,17 @@ New stream with sequence number
         [ // buys
             [
                 40000.0,
-                3.0,
-                2 // update
+                3.0
             ],
             [
                 39990.0,
-                3.0,
-                1 // insert
+                3.0
             ],
         ],
         [ // sells
             [
                 41000.0,
-                0.0,
-                3 // delete
+                0.0
             ]
         ],
         747, // sequence number
