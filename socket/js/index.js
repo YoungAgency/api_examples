@@ -1,7 +1,9 @@
 const WebSocket = require('ws');
 const crypto = require('crypto');
+const axios = require('axios');
 
 const wssURL = 'wss://api.youngplatform.com/ws';
+const apiUrl = 'https://api.youngplatform.com';
 
 const ws = new WebSocket(wssURL);
 
@@ -17,7 +19,9 @@ if (!apiKey) {
     process.exit(1);
 }
 
-ws.on('open', () => {
+var localBookSnapshot = undefined;
+
+ws.on('open', async () => {
     console.log('Connected to the WSS server.');
 
     // Login to socket
@@ -43,9 +47,9 @@ ws.on('open', () => {
     ws.send(JSON.stringify(authPayload));
 });
 
-ws.on('message', (message) => {
+ws.on('message', async (message) => {
     // console.log(`Received message from server: ${message}`);
-    // console.log(message.toString());
+    console.log(message.toString());
     var parsedMessage = JSON.parse(message);
     if (parsedMessage.data === 'logged') {
         
@@ -101,7 +105,48 @@ ws.on('message', (message) => {
                 console.log('Order update: ', parsedMessage.data);
                 break;
             case 'OBI':
-                console.log('Order book update: ', parsedMessage.data);
+                // ORDER BOOK INCREMENTAL
+                if (localBookSnapshot === undefined) {
+                    // fetch snapshot the first time
+                    localBookSnapshot = await getBook("BTC-EUR", 100);
+                    console.log("Initial book: ", localBookSnapshot.sequence_number);
+                }
+                if (parsedMessage.data.length != 5) {
+                    console.log("invalid data: ", parsedMessage.data);
+                    break;
+                }
+                let bookUpdates = bookArrayToObject(parsedMessage.data);
+                if (bookUpdates.sequence_number === localBookSnapshot.sequence_number +1) {
+                    let buyKeys = Object.keys(bookUpdates.buys);
+                    let sellKeys = Object.keys(bookUpdates.sells);
+                    for (let i = 0; i < buyKeys.length; i++) {
+                        let key = buyKeys[i];
+                        if (bookUpdates.buys[key] === 0) {
+                            // delete if volume is 0
+                            delete localBookSnapshot.buys[key];
+                        } else {
+                            // update price point
+                            localBookSnapshot.buys[key] = bookUpdates.buys[key];
+                        }
+                    }
+                    for (let i = 0; i < sellKeys.length; i++) {
+                        if (bookUpdates.sells[sellKeys[i]] === 0) {
+                            delete localBookSnapshot.sells[sellKeys[i]];
+                        } else {
+                            localBookSnapshot.sells[sellKeys[i]] = bookUpdates.sells[sellKeys[i]];
+                        }
+                    }
+                    //console.log("apply book updates " + bookUpdates.sequence_number +  " " + localBookSnapshot.sequence_number);
+                    localBookSnapshot.sequence_number = bookUpdates.sequence_number;
+
+                    // print best bid and ask
+                    let bestBid = Object.keys(localBookSnapshot.buys).reduce((a, b) => a > b ? a : b);
+                    let bestAsk = Object.keys(localBookSnapshot.sells).reduce((a, b) => a < b ? a : b);
+                    console.log("best ask: ", bestAsk, localBookSnapshot.sells[bestAsk]);
+                    console.log("best bid: ", bestBid, localBookSnapshot.buys[bestBid]);
+                } else {
+                    console.log("skip book update:" +  bookUpdates.sequence_number);
+                }
                 break;
             case 'PT':
                 console.log('Public Trades update: ', parsedMessage.data);
@@ -119,3 +164,26 @@ ws.on('close', (code, reason) => {
 ws.on('error', (error) => {
     console.error(`WebSocket error: ${error.message}`);
 });
+
+
+async function getBook(pair, levels = 50) {
+    try {
+        let url  =  `${apiUrl}/api/v3/orderbook/${pair}/snapshot?levels=${levels}`;
+        var data = (await axios.get(url)).data;
+        return bookArrayToObject(data);
+    } catch(e) {
+        console.log(e);
+        throw e;
+    }
+}
+
+function bookArrayToObject(data) {
+    var ret  = {
+        pair : data[0],
+        buys:  data[1].reduce((acc, x) => { acc[x[0]] = x[1]; return acc; }, {}),
+        sells: data[2].reduce((acc, x) => { acc[x[0]] = x[1]; return acc; }, {}),
+        sequence_number: data[3],
+        timestamp: data[4]
+    }
+    return ret;
+}
