@@ -139,11 +139,18 @@ ws.on('message', async (message) => {
                     //console.log("apply book updates " + bookUpdates.sequence_number +  " " + localBookSnapshot.sequence_number);
                     localBookSnapshot.sequence_number = bookUpdates.sequence_number;
 
-                    // print best bid and ask
-                    let bestBid = Object.keys(localBookSnapshot.buys).reduce((a, b) => a > b ? a : b);
-                    let bestAsk = Object.keys(localBookSnapshot.sells).reduce((a, b) => a < b ? a : b);
-                    console.log("best ask: ", bestAsk, localBookSnapshot.sells[bestAsk]);
-                    console.log("best bid: ", bestBid, localBookSnapshot.buys[bestBid]);
+                    // print best bid and ask first 5 depth
+                    let bestBid = Object.keys(localBookSnapshot.buys).sort((a, b) => b - a);
+                    let bestAsk = Object.keys(localBookSnapshot.sells).sort((a, b) => a - b);
+
+                    console.log("asks");
+                    for (let i = 4; i >=0; i--) {
+                        console.log(bestAsk[i], localBookSnapshot.sells[bestAsk[i]]);
+                    }
+                    console.log("bids");
+                    for (let i = 0; i < 5; i++) {
+                        console.log(bestBid[i], localBookSnapshot.buys[bestBid[i]]);
+                    }
                 } else {
                     console.log("skip book update:" +  bookUpdates.sequence_number);
                 }
