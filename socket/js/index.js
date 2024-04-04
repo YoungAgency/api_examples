@@ -144,11 +144,11 @@ ws.on('message', async (message) => {
                     let bestAsk = Object.keys(localBookSnapshot.sells).sort((a, b) => a - b);
 
                     console.log("asks");
-                    for (let i = 4; i >=0; i--) {
+                    for (let i = 9; i >=0; i--) {
                         console.log(bestAsk[i], localBookSnapshot.sells[bestAsk[i]]);
                     }
                     console.log("bids");
-                    for (let i = 0; i < 5; i++) {
+                    for (let i = 0; i < 10; i++) {
                         console.log(bestBid[i], localBookSnapshot.buys[bestBid[i]]);
                     }
                 } else {
