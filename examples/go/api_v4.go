@@ -12,10 +12,14 @@ import (
 	jwt "github.com/golang-jwt/jwt/v5"
 )
 
-func main() {
+func apiV4() {
 	keyID := ""
 	publicKey := ""
 	privateKey := ""
+
+	if keyID == "" || publicKey == "" || privateKey == "" {
+		panic("Please set keyID, publicKey and privateKey")
+	}
 	baseUrl := "https://api.youngplatform.com"
 
 	balanceUrl := baseUrl + "/api/v4/private/balances"
