@@ -8,7 +8,7 @@ const keyId = ""; // your key id
 const publicKey = ""; // your public key
 const privateKey = ""; // your private key
 const token = generateJwt(publicKey,privateKey, "");
-console.log(token);
+
 const headers = {
     "Authorization": token,
     "X-Api-Key-Id": keyId,
@@ -22,8 +22,8 @@ ws.on('open', async () => {
         method: 'subscribe',
         events: [
             'T.BTC-EUR', // ticker
-            "OBI.BTC-EUR", // order book incremental
-            "TH.BTC-EUR", // trade history
+            "TP.BTC-EUR", // trade history
+            "PO.BTC-EUR", // order book snapshot
         ]
     }
     ws.send(JSON.stringify(subscribePayload));

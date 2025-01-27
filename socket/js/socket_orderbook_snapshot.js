@@ -1,7 +1,5 @@
 const WebSocket = require('ws');
 const axios = require('axios');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 
 const wssURL = 'wss://api.youngplatform.com/api/socket/ws';
 const apiUrl = 'https://api.youngplatform.com';
@@ -10,20 +8,13 @@ const ws = new WebSocket(wssURL);
 
 var localBookSnapshot = undefined;
 
-console.log("Generating JWT token");
-
-console.log(generateJwt("YOUR_API_KEY", "YOUR_PRIVATE"));
-
 
 ws.on('open', async () => {
     console.log('Connected to the WSS server.');
 
     let subscribePayload = {
-        op: 'SUBSCRIBE',
-        channel: 'OBI',
-        data: {
-            pairs: ['BTC-EUR']
-        }
+        method: 'subscribe',
+        events: ['OBI.BTC-EUR']
     }
     ws.send(JSON.stringify(subscribePayload));
 });
@@ -31,7 +22,13 @@ ws.on('open', async () => {
 ws.on('message', async (message) => {
     console.log(message.toString());
     var parsedMessage = JSON.parse(message);
-    switch (parsedMessage.channel) {
+    let msgTopic = parsedMessage.type;
+    if (!msgTopic) {
+        console.log('Unknown message: ', message.toString());
+        return;
+    }
+    msgTopic = msgTopic.startsWith('OBI') ? 'OBI' : msgTopic;
+    switch (msgTopic) {
         case 'OBI':
             // ORDER BOOK INCREMENTAL
             if (localBookSnapshot === undefined) {
@@ -67,7 +64,6 @@ ws.on('message', async (message) => {
                         localBookSnapshot.sells[sellKeys[i]] = bookUpdates.sells[sellKeys[i]];
                     }
                 }
-                //console.log("apply book updates " + bookUpdates.sequence_number +  " " + localBookSnapshot.sequence_number);
                 localBookSnapshot.sequence_number = bookUpdates.sequence_number;
 
                 // print best bid and ask first 5 depth
@@ -84,6 +80,10 @@ ws.on('message', async (message) => {
                 }
                 console.log();
             } else {
+                if (bookUpdates.sequence_number > localBookSnapshot.sequence_number) {
+                    // TODO: socket messages should be cached before requesting snapshot, see documentation
+                    throw new Error("Missed book update: " + localBookSnapshot.sequence_number + " " + bookUpdates.sequence_number);
+                }
                 console.log("skip book update:" + bookUpdates.sequence_number);
             }
             break;
@@ -102,47 +102,35 @@ ws.on('error', (error) => {
 
 async function getBook(pair, levels = 50) {
     try {
-        let url = `${apiUrl}/api/v3/orderbook/${pair}/snapshot?levels=${levels}`;
+        let url = `${apiUrl}/api/v4/public/orderbook/?pair=${pair}&levels=${levels}`;
         var data = (await axios.get(url)).data;
-        return bookArrayToObject(data);
+        return bookObjectToObject(data);
     } catch (e) {
         console.log(e);
         throw e;
     }
 }
 
-function bookArrayToObject(data) {
+// v4 public request
+function bookObjectToObject(data) {
     var ret = {
-        pair: data[0],
-        buys: data[1].reduce((acc, x) => { acc[x[0]] = x[1]; return acc; }, {}),
-        sells: data[2].reduce((acc, x) => { acc[x[0]] = x[1]; return acc; }, {}),
-        sequence_number: data[3],
-        timestamp: data[4]
+        pair: data.pair,
+        buys: data.buys.reduce((acc, x) => { acc[x.price] = x.size; return acc; }, {}),
+        sells: data.sells.reduce((acc, x) => { acc[x.price] = x.size; return acc; }, {}),
+        sequence_number: data.sequenceNumber
     }
     return ret;
 }
 
-// const jwt = require('jsonwebtoken');
-function generateJwt(apiKey, privateKey, payload) {
-    let iat = Math.floor(Date.now() / 1000);
-    let exp = iat + 30;
-    if (payload == undefined) {
-        // if GET request or no payload, use empty string
-        payload = "";
-    }
-    let hashPayload = crypto.createHash('sha256').update(payload).digest('hex');
-    const jwtClaims = {
-        "sub": apiKey,
-        "iat": iat,
-        "exp": exp,
-        "hash_payload": hashPayload
-    };
-    // quella che ti da API
-    let privateKeyDer = "MHcCAQEEIB4rwBntv22TuFM0oyg0scEHxmodC2PYpFLOu8xeXl4goAoGCCqGSM49AwEHoUQDQgAEcqvovoSoDSXR9tilQNy77KNkXzAA70L7Je9GLogq3nCgDyboFMRp30/8a9UXeHLETG2JcstL9CHDCbCL8LFOhw==";
 
-    let base64Key = Buffer.from(privateKeyDer, 'base64');
-    const key = crypto.createPrivateKey( { key: base64Key, format: 'der', type: 'sec1' } );
-    // const privkeyInPemFormat = key.export( { format: 'pem', type: 'sec1' } );
-    var token = jwt.sign(jwtClaims, key, { algorithm: 'ES256' });
-   return token;
-}
+// v4 socket message
+function bookArrayToObject(data) {
+    var ret = {
+        pair: data[0],
+        buys: data[1].reduce((acc, x) => { acc[parseFloat(x[0])] = parseFloat(x[1]); return acc; }, {}),
+        sells: data[2].reduce((acc, x) => { acc[parseFloat(x[0])] = parseFloat(x[1]); return acc; }, {}),
+        sequence_number: data[3],
+        timestamp: data[4]
+    }
+    return ret;
+}       
