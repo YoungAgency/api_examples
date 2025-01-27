@@ -1,14 +1,17 @@
 # Youngplatform API Examples
 
-This repository provides some examples for connection to Youngplatform APIs
+[Postman Documentation](https://documenter.getpostman.com/view/20237880/2sAYJAdxQv)
 
+This repository provides some examples for connection to Youngplatform APIs.
 
+JWT examples provides examples of JWT generation for authenticated requests.
+ 
 - [Python REST API JWT](./examples/python/api_v4.py)
-- [Python Socket](./examples/python/socket_connect.py)
 - [Node REST API JWT](./examples/js/api_v4.js)
+- [Go REST API JWT](./examples/go/api_v4.go)
+- [Python Socket](./examples/python/socket_connect.py)
 - [Node Socket](./examples/js/socket_connect.js)
 - [Node OBI implementation](./examples/js/socket_orderbook_snapshot.js)
-- [Go REST API JWT](./examples/go/api_v4.go)
 
 
 ## Authentication
@@ -258,15 +261,14 @@ On connect, all balances are sent.
 ```
 
 
-
 # OrderBook Incremental
 
-- make an HTTP GET request to the `/api/v4/public/orderbook/?pair=${pair}&levels=${levels}` endpoint to fetch the current order book snapshot for the specified trading pair. This snapshot will provide the initial state of the order book.
+- connect to OBI stream and buffer events
+- make an HTTP GET request to the `/api/v4/public/orderbook?pair=${pair}&levels=${levels}`endpoint to fetch the current order book snapshot for the specified trading pair. This snapshot will provide the initial state of the order book.
 
-- once the snapshot is received, process it accordingly. Ensure that the sequence number (sn) of the first event processed from the WebSocket stream is equal to the sn of the snapshot plus one. This ensures that you're starting with the correct sequence number for subsequent incremental updates.`sn = snapshot_sn + 1`
+- once the snapshot is received, ensure that the sequence number (sn) of the first event processed from the WebSocket stream is equal to the sn of the snapshot + 1. This ensures that you're starting with the correct sequence number for subsequent incremental updates.sn = snapshot_sn + 1
 
-- after processing the snapshot, continue listening to the WebSocket stream for incremental updates to the order book. Each update will have its own sequence number (sn). Verify that the sequence number of each incremental update is equal to the snapshot's sequence number plus one. If this condition is not met you must re-request the snapshot.
-
+- continue listening to the WebSocket stream for incremental updates to the order book. Each update will have its own sequence number (sn). Verify that the sequence number of each incremental update is equal to the snapshot's sequence number plus one. If this condition is not met you must re-request the snapshot.
 
 
 ### Subscribe Message
