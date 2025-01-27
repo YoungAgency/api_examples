@@ -1,12 +1,19 @@
 const WebSocket = require('ws');
 const axios = require('axios');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
-const wssURL = 'wss://api.youngplatform.com/ws';
+const wssURL = 'wss://api.youngplatform.com/api/socket/ws';
 const apiUrl = 'https://api.youngplatform.com';
 
 const ws = new WebSocket(wssURL);
 
 var localBookSnapshot = undefined;
+
+console.log("Generating JWT token");
+
+console.log(generateJwt("YOUR_API_KEY", "YOUR_PRIVATE"));
+
 
 ws.on('open', async () => {
     console.log('Connected to the WSS server.');
@@ -113,4 +120,29 @@ function bookArrayToObject(data) {
         timestamp: data[4]
     }
     return ret;
+}
+
+// const jwt = require('jsonwebtoken');
+function generateJwt(apiKey, privateKey, payload) {
+    let iat = Math.floor(Date.now() / 1000);
+    let exp = iat + 30;
+    if (payload == undefined) {
+        // if GET request or no payload, use empty string
+        payload = "";
+    }
+    let hashPayload = crypto.createHash('sha256').update(payload).digest('hex');
+    const jwtClaims = {
+        "sub": apiKey,
+        "iat": iat,
+        "exp": exp,
+        "hash_payload": hashPayload
+    };
+    // quella che ti da API
+    let privateKeyDer = "MHcCAQEEIB4rwBntv22TuFM0oyg0scEHxmodC2PYpFLOu8xeXl4goAoGCCqGSM49AwEHoUQDQgAEcqvovoSoDSXR9tilQNy77KNkXzAA70L7Je9GLogq3nCgDyboFMRp30/8a9UXeHLETG2JcstL9CHDCbCL8LFOhw==";
+
+    let base64Key = Buffer.from(privateKeyDer, 'base64');
+    const key = crypto.createPrivateKey( { key: base64Key, format: 'der', type: 'sec1' } );
+    // const privkeyInPemFormat = key.export( { format: 'pem', type: 'sec1' } );
+    var token = jwt.sign(jwtClaims, key, { algorithm: 'ES256' });
+   return token;
 }
