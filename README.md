@@ -8,6 +8,7 @@ This repository provides some examples for connection to Youngplatform APIs
 - [Node REST API JWT](./examples/js/api_v4.js)
 - [Node Socket](./examples/js/socket_connect.js)
 - [Node OBI implementation](./examples/js/socket_orderbook_snapshot.js)
+- [Go REST API JWT](./examples/go/api_v4.go)
 
 
 ## Authentication
