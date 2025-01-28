@@ -13,9 +13,9 @@ import (
 )
 
 type orderBook struct {
-	Buys           map[float64]float64 `json:"buys"`
-	Sells          map[float64]float64 `json:"sells"`
-	SequenceNumber int64               `json:"sequenceNumber"`
+	Buys           map[float64]float64
+	Sells          map[float64]float64
+	SequenceNumber int64
 }
 
 func orderbook() {
@@ -25,7 +25,7 @@ func orderbook() {
 		panic(err)
 	}
 
-	for _, el := range orderbookCache.topN(10) {
+	for _, el := range orderbookCache.topN(5) {
 		fmt.Println(el[0], el[1])
 	}
 
@@ -34,7 +34,7 @@ func orderbook() {
 	for update := range socketUpdates("BTC-EUR") {
 		if update.SequenceNumber == orderbookCache.SequenceNumber+1 {
 			orderbookCache.ApplyUpdate(*update)
-			orderbookCache.Print(10)
+			orderbookCache.Print(5)
 		} else {
 			// TODO: should buffer events before requesting a new snapshot
 			// TODO: handle errors
@@ -144,15 +144,15 @@ func getOrderBook(pair string) (*orderBook, error) {
 	}
 
 	ob := struct {
-		Buys []struct {
-			Price float64 `json:"price"`
-			Size  float64 `json:"size"`
-		}
-		Sells []struct {
-			Price float64 `json:"price"`
-			Size  float64 `json:"size"`
-		}
-		SequenceNumber int64 `json:"sequenceNumber"`
+		Bids []struct {
+			Rate   float64 `json:"r"`
+			Volume float64 `json:"v"`
+		} `json:"bids"`
+		Asks []struct {
+			Rate   float64 `json:"r"`
+			Volume float64 `json:"v"`
+		} `json:"asks"`
+		SequenceNumber int64 `json:"sn"`
 	}{}
 	if err := json.NewDecoder(res.Body).Decode(&ob); err != nil {
 		return nil, err
@@ -164,11 +164,11 @@ func getOrderBook(pair string) (*orderBook, error) {
 		SequenceNumber: ob.SequenceNumber,
 	}
 
-	for _, buy := range ob.Buys {
-		ret.Buys[buy.Price] = buy.Size
+	for _, buy := range ob.Bids {
+		ret.Buys[buy.Rate] = buy.Volume
 	}
-	for _, sell := range ob.Sells {
-		ret.Sells[sell.Price] = sell.Size
+	for _, sell := range ob.Asks {
+		ret.Sells[sell.Rate] = sell.Volume
 	}
 
 	return &ret, nil
@@ -263,7 +263,7 @@ func (ob *orderBook) Print(n int) {
 		if i == len(data)/2 {
 			fmt.Println("  ----")
 		}
-		fmt.Printf("%5s | %10.2f | %2.6f | %10.2f | %2.f\n", "can", el[0], el[1], el[0]*el[1], cumAmount)
+		fmt.Printf("%10.2f | %2.6f | %10.2f | %2.f\n", el[0], el[1], el[0]*el[1], cumAmount)
 		if i < len(data)/2 {
 			sellCum -= el[0] * el[1]
 		} else {

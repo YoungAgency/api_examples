@@ -115,9 +115,9 @@ async function getBook(pair, levels = 50) {
 function bookObjectToObject(data) {
     var ret = {
         pair: data.pair,
-        buys: data.buys.reduce((acc, x) => { acc[x.price] = x.size; return acc; }, {}),
-        sells: data.sells.reduce((acc, x) => { acc[x.price] = x.size; return acc; }, {}),
-        sequence_number: data.sequenceNumber
+        buys: data.bids.reduce((acc, x) => { acc[x.r] = x.v; return acc; }, {}),
+        sells: data.asks.reduce((acc, x) => { acc[x.r] = x.v; return acc; }, {}),
+        sequence_number: data.sn
     }
     return ret;
 }
