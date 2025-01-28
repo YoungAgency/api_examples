@@ -19,7 +19,7 @@ func orderbook() {
 		panic(err)
 	}
 
-	for _, el := range orderbookCache.top5() {
+	for _, el := range orderbookCache.topN(10) {
 		fmt.Println(el[0], el[1])
 	}
 
@@ -28,35 +28,7 @@ func orderbook() {
 	for update := range socketUpdates("BTC-EUR") {
 		if update.SequenceNumber == orderbookCache.SequenceNumber+1 {
 			orderbookCache.ApplyUpdate(*update)
-			fmt.Println(len(orderbookCache.Buys), len(orderbookCache.Sells))
-			data := orderbookCache.top5()
-			sellCum := reduce(data[:5])
-			buyCum := 0.0
-			//   98084.24 | 0.000120 |      11.77 | 3651
-			fmt.Println("  Price	   |  Size    |  Amount    | Cumulative")
-			for i, el := range orderbookCache.top5() {
-				if el[0] == 0 {
-					fmt.Println("----")
-					continue
-				}
-				cumAmount := 0.0
-				if i < len(data)/2 {
-					cumAmount = sellCum
-				} else {
-					cumAmount = buyCum + el[0]*el[1]
-				}
-				if i == len(data)/2 {
-					fmt.Println("  ----")
-				}
-				fmt.Printf("%10.2f | %2.6f | %10.2f | %2.f\n", el[0], el[1], el[0]*el[1], cumAmount)
-				if i < len(data)/2 {
-					sellCum -= el[0] * el[1]
-				} else {
-					buyCum += el[0] * el[1]
-				}
-			}
-			fmt.Println()
-			fmt.Println()
+			orderbookCache.Print(10)
 		} else {
 			// TODO: should buffer events before requesting a new snapshot
 			// TODO: handle errors
@@ -118,6 +90,7 @@ func socketUpdates(pair string) chan *orderBook {
 				buys := socketMessage.Data.([]any)[1]
 				sells := socketMessage.Data.([]any)[2]
 
+				// create map of buys and sells using prices as keys
 				for i := range buys.([]any) {
 					buy := buys.([]any)[i].([]any)
 					priceS := buy[0].(string)
@@ -220,7 +193,7 @@ func (ob *orderBook) ApplyUpdate(u orderBook) {
 	}
 }
 
-func (ob *orderBook) top5() [][]float64 {
+func (ob *orderBook) topN(n int) [][]float64 {
 	buys := make([][]float64, 0)
 	sells := make([][]float64, 0)
 
@@ -253,18 +226,50 @@ func (ob *orderBook) top5() [][]float64 {
 
 	ret := make([][]float64, 0)
 
-	sells = sells[:5]
-	buys = buys[:5]
-	for i := 0; i < 5; i++ {
+	sells = sells[:n]
+	buys = buys[:n]
+	for i := 0; i < n; i++ {
 		if i < len(sells) {
 			ret = append(ret, sells[len(sells)-1-i])
 		}
 	}
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < n; i++ {
 		if i < len(buys) {
 			ret = append(ret, buys[i])
 		}
 	}
 	return ret
+}
+
+func (ob *orderBook) Print(n int) {
+	fmt.Println(ob.SequenceNumber, len(ob.Buys), len(ob.Sells))
+	data := ob.topN(n)
+	sellCum := reduce(data[:n])
+	buyCum := 0.0
+	//   98084.24 | 0.000120 |      11.77 | 3651
+	fmt.Println("  Price	   |  Size    |  Amount    | Cumulative")
+	for i, el := range data {
+		if el[0] == 0 {
+			fmt.Println("----")
+			continue
+		}
+		cumAmount := 0.0
+		if i < len(data)/2 {
+			cumAmount = sellCum
+		} else {
+			cumAmount = buyCum + el[0]*el[1]
+		}
+		if i == len(data)/2 {
+			fmt.Println("  ----")
+		}
+		fmt.Printf("%10.2f | %2.6f | %10.2f | %2.f\n", el[0], el[1], el[0]*el[1], cumAmount)
+		if i < len(data)/2 {
+			sellCum -= el[0] * el[1]
+		} else {
+			buyCum += el[0] * el[1]
+		}
+	}
+	fmt.Println()
+	fmt.Println()
 }
