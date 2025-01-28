@@ -12,6 +12,7 @@ JWT examples provides examples of JWT generation for authenticated requests.
 - [Python Socket](./examples/python/socket_connect.py)
 - [Node Socket](./examples/js/socket_connect.js)
 - [Node OBI implementation](./examples/js/socket_orderbook_snapshot.js)
+- [Go OBI implementation](./examples/go/socket_orderbook_snapshot.go)
 
 
 ## Authentication
