@@ -12,6 +12,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type orderBook struct {
+	Buys           map[float64]float64 `json:"buys"`
+	Sells          map[float64]float64 `json:"sells"`
+	SequenceNumber int64               `json:"sequenceNumber"`
+}
+
 func orderbook() {
 
 	orderbookCache, err := getOrderBook("BTC-EUR")
@@ -168,12 +174,6 @@ func getOrderBook(pair string) (*orderBook, error) {
 	return &ret, nil
 }
 
-type orderBook struct {
-	Buys           map[float64]float64 `json:"buys"`
-	Sells          map[float64]float64 `json:"sells"`
-	SequenceNumber int64               `json:"sequenceNumber"`
-}
-
 func (ob *orderBook) ApplyUpdate(u orderBook) {
 	ob.SequenceNumber = u.SequenceNumber
 
@@ -263,7 +263,7 @@ func (ob *orderBook) Print(n int) {
 		if i == len(data)/2 {
 			fmt.Println("  ----")
 		}
-		fmt.Printf("%10.2f | %2.6f | %10.2f | %2.f\n", el[0], el[1], el[0]*el[1], cumAmount)
+		fmt.Printf("%5s | %10.2f | %2.6f | %10.2f | %2.f\n", "can", el[0], el[1], el[0]*el[1], cumAmount)
 		if i < len(data)/2 {
 			sellCum -= el[0] * el[1]
 		} else {
