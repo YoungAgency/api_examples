@@ -1,0 +1,18 @@
+IMPORTANTE: LEGGERE ATTENTAMENTE PRIMA DI UTILIZZARE QUESTI ESEMPI.
+Questi esempi di codice sono forniti da Young Platform Spa (“Young Platform”) esclusivamente a scopo informativo e dimostrativo per facilitare l’integrazione con le API di trading di Young Platform. Questi esempi hanno lo scopo di assistere i clienti esistenti e potenziali nella comprensione delle funzionalità delle API e non sono destinati all’uso in produzione senza un’accurata fase di test e integrazione da parte dell’utente.
+Concessione di Licenza:
+Young Platform concede all’utente una licenza non esclusiva, non trasferibile, revocabile e limitata all’uso di questi esempi di codice esclusivamente allo scopo di valutare e integrare le API di trading di Young Platform. L’utente può modificare questi esempi per il proprio uso interno, ma non può distribuire, concedere in sublicenza, affittare, noleggiare, prestare, vendere, rivendere o altrimenti trasferire questi esempi o qualsiasi modifica degli stessi, a titolo oneroso o gratuito, a terzi senza l’espresso consenso scritto di Young Platform.
+Esclusione di Garanzie:
+QUESTI ESEMPI DI CODICE SONO FORNITI “COSÌ COME SONO” E SENZA ALCUNA GARANZIA DI ALCUN TIPO. YOUNG PLATFORM ESCLUDE ESPRESSAMENTE OGNI GARANZIA, SIA ESSA ESPRESSA, IMPLICITA, STATUTORIA O DI ALTRO TIPO, INCLUSE, A TITOLO ESEMPLIFICATIVO MA NON ESAUSTIVO, GARANZIE DI COMMERCIABILITÀ, IDONEITÀ A UN PARTICOLARE SCOPO, TITOLO, NON VIOLAZIONE E ACCURATEZZA. YOUNG PLATFORM NON GARANTISCE CHE QUESTI ESEMPI SIANO PRIVI DI ERRORI, INTERRUZIONI O CHE SODDISFINO I VOSTRI SPECIFICI REQUISITI. L’INTERO RISCHIO DERIVANTE DALL’USO O DALLE PRESTAZIONI DI QUESTI ESEMPI RIMANE A VOSTRO CARICO.
+Esclusione di Responsabilità:
+NELLA MISURA MASSIMA CONSENTITA DALLA LEGGE APPLICABILE, YOUNG PLATFORM NON SARÀ RESPONSABILE PER ALCUN DANNO INDIRETTO, INCIDENTALE, SPECIALE, CONSEQUENZIALE O PUNITIVO, INCLUSI, A TITOLO ESEMPLIFICATIVO MA NON ESAUSTIVO, DANNI PER MANCATI PROFITTI, PERDITA DI DATI, INTERRUZIONE DELL’ATTIVITÀ O QUALSIASI ALTRA PERDITA PECUNIARIA, DERIVANTI DA O CORRELATI ALL’USO O ALL’IMPOSSIBILITÀ DI UTILIZZARE QUESTI ESEMPI DI CODICE, ANCHE SE YOUNG PLATFORM SIA STATA INFORMATA DELLA POSSIBILITÀ DI TALI DANNI. LA RESPONSABILITÀ TOTALE DI YOUNG PLATFORM NEI VOSTRI CONFRONTI PER QUALSIASI RECLAMO DERIVANTE DA O CORRELATO A QUESTI ESEMPI SARÀ LIMITATA ALL’IMPORTO PAGATO A YOUNG PLATFORM PER L’USO DELLA PIATTAFORMA YOUNG PLATFORM.
+Nessuna Consulenza:
+Questi esempi di codice sono forniti solo a scopo illustrativo e non costituiscono consulenza finanziaria. Siete gli unici responsabili delle vostre decisioni di trading. Young Platform non fornisce alcuna raccomandazione o approvazione. Si consiglia di consultare un consulente qualificato prima di prendere qualsiasi decisione.
+Utilizzo delle API e Conformità:
+L’utilizzo da parte vostra delle API di trading di Young Platform e di questi esempi di codice deve essere conforme a tutte le leggi, i regolamenti applicabili e ai Termini di Servizio delle API di Young Platform. Siete responsabili di garantire che la vostra integrazione con le API sia sicura e non violi diritti di terzi.
+Manleva:
+L’utente accetta di indennizzare e manlevare Young Platform da qualsiasi reclamo, danno, responsabilità e spesa (comprese le spese legali) derivanti da o correlati all’utilizzo di questi esempi di codice o all’integrazione con le API di trading di Young Platform.
+Legge Applicabile:
+I presenti termini e condizioni saranno regolati e interpretati in conformità con la legge italiana.
+Informazioni di Contatto:
+In caso di domande relative a questi esempi di codice o alle API di trading di Young Platform, si prega di contattare Young Platform all’indirizzo support@youngplatform.com
