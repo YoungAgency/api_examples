@@ -20,7 +20,6 @@ ws.on('open', async () => {
 });
 
 ws.on('message', async (message) => {
-    console.log(message.toString());
     var parsedMessage = JSON.parse(message);
     let msgTopic = parsedMessage.type;
     if (!msgTopic) {
@@ -35,13 +34,16 @@ ws.on('message', async (message) => {
                 // fetch snapshot the first time
                 localBookSnapshot = await getBook("BTC-EUR", 100);
                 console.log("Initial book: ", localBookSnapshot.sequence_number);
-                break;
             }
             if (parsedMessage.data.length != 5) {
                 console.log("invalid data: ", parsedMessage.data);
                 break;
             }
             let bookUpdates = bookArrayToObject(parsedMessage.data);
+            if (localBookSnapshot.sequence_number > bookUpdates.sequence_number) {
+                console.log("skip book update: ", bookUpdates.sequence_number);
+                break;
+            }
 
             // check if the update is the next sequence number
             if (bookUpdates.sequence_number === localBookSnapshot.sequence_number + 1) {
@@ -115,8 +117,8 @@ async function getBook(pair, levels = 50) {
 function bookObjectToObject(data) {
     var ret = {
         pair: data.pair,
-        buys: data.bids.reduce((acc, x) => { acc[x.r] = x.v; return acc; }, {}),
-        sells: data.asks.reduce((acc, x) => { acc[x.r] = x.v; return acc; }, {}),
+        buys: data.bids.reduce((acc, x) => { acc[parseFloat(x.r)] = parseFloat(x.v); return acc; }, {}),
+        sells: data.asks.reduce((acc, x) => { acc[parseFloat(x.r)] = parseFloat(x.v); return acc; }, {}),
         sequence_number: data.sn
     }
     return ret;

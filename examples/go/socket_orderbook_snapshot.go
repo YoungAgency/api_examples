@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,25 +20,27 @@ type orderBook struct {
 }
 
 func orderbook() {
-
-	orderbookCache, err := getOrderBook("BTC-EUR")
-	if err != nil {
-		panic(err)
-	}
-
-	for _, el := range orderbookCache.topN(5) {
-		fmt.Println(el[0], el[1])
-	}
-
-	fmt.Println()
-
+	var orderbookCache *orderBook
+	// connect to socket
 	for update := range socketUpdates("BTC-EUR") {
+		if orderbookCache == nil {
+			var err error
+			// fetch snapshot
+			orderbookCache, err = getOrderBook("BTC-EUR")
+			if err != nil {
+				panic(err)
+			}
+		}
+		// ignore messages received before the snapshot
+		if update.SequenceNumber <= orderbookCache.SequenceNumber {
+			fmt.Println("Skipping update", update.SequenceNumber, orderbookCache.SequenceNumber)
+			continue
+		}
 		if update.SequenceNumber == orderbookCache.SequenceNumber+1 {
 			orderbookCache.ApplyUpdate(*update)
 			orderbookCache.Print(5)
 		} else {
-			// TODO: should buffer events before requesting a new snapshot
-			// TODO: handle errors
+			fmt.Println("Sequence number mismatch", orderbookCache.SequenceNumber, update.SequenceNumber)
 			panic("Invalid sequence number")
 		}
 	}
@@ -145,12 +148,12 @@ func getOrderBook(pair string) (*orderBook, error) {
 
 	ob := struct {
 		Bids []struct {
-			Rate   float64 `json:"r"`
-			Volume float64 `json:"v"`
+			Rate   string `json:"r"`
+			Volume string `json:"v"`
 		} `json:"bids"`
 		Asks []struct {
-			Rate   float64 `json:"r"`
-			Volume float64 `json:"v"`
+			Rate   string `json:"r"`
+			Volume string `json:"v"`
 		} `json:"asks"`
 		SequenceNumber int64 `json:"sn"`
 	}{}
@@ -165,10 +168,14 @@ func getOrderBook(pair string) (*orderBook, error) {
 	}
 
 	for _, buy := range ob.Bids {
-		ret.Buys[buy.Rate] = buy.Volume
+		rateF, _ := strconv.ParseFloat(buy.Rate, 64)
+		volumeF, _ := strconv.ParseFloat(buy.Volume, 64)
+		ret.Buys[rateF] = volumeF
 	}
 	for _, sell := range ob.Asks {
-		ret.Sells[sell.Rate] = sell.Volume
+		rateF, _ := strconv.ParseFloat(sell.Rate, 64)
+		volumeF, _ := strconv.ParseFloat(sell.Volume, 64)
+		ret.Sells[rateF] = volumeF
 	}
 
 	return &ret, nil
@@ -243,7 +250,7 @@ func (ob *orderBook) topN(n int) [][]float64 {
 }
 
 func (ob *orderBook) Print(n int) {
-	fmt.Println(ob.SequenceNumber, len(ob.Buys), len(ob.Sells))
+	fmt.Println(ob.SequenceNumber, len(ob.Buys), len(ob.Sells), time.Now().UTC())
 	data := ob.topN(n)
 	sellCum := reduce(data[:n])
 	buyCum := 0.0
