@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YoungPlatform API</title>
+    <link rel="icon" href="./yp_logo.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./toolbar.js" defer></script>
+  </head>
+  <body>
+    <!-- Scalar renders the spec fetched from ./trader_openapi.json (served as a
+         sibling by the Pages workflow). -->
+    <!-- The spec's server is relative (/api/v1/trader) so it stays host-agnostic; Scalar
+         would otherwise resolve it against the Pages origin (github.io). Override
+         `servers` here so the "Test Request" / curl show the real API host. -->
+    <div class="scalar-wrap">
+      <script
+        id="api-reference"
+        data-url="./trader_openapi.json"
+        data-configuration='{"theme":"default","hideDownloadButton":false,"servers":[{"url":"https://api.youngplatform.com/api/v1/trader","description":"Production"}]}'
+      ></script>
+      <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+    </div>
+  </body>
+</html>

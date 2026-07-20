@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YoungPlatform API Guide</title>
+    <link rel="icon" href="./yp_logo.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./toolbar.js" defer></script>
+  </head>
+  <body>
+    <div class="guide">
+      <nav class="guide-nav">
+        <a class="back" href="./index.html">&larr; Back to docs</a>
+        <h2>Guides</h2>
+        <ul id="guide-list"></ul>
+      </nav>
+      <main>
+        <div id="error" hidden></div>
+        <zero-md id="viewer">
+          <!-- Append to zero-md's baked-in github-markdown CSS (inside its shadow
+               DOM, so docs/styles.css can't reach it). Renders blockquotes as amber
+               callouts — used for the v4 migration note and other cautions. -->
+          <template data-append>
+            <style>
+              .markdown-body blockquote {
+                color: inherit;
+                border-left: 4px solid #f5a623;
+                background: rgba(245, 166, 35, 0.12);
+                padding: 0.75rem 1rem;
+                border-radius: 6px;
+              }
+              .markdown-body blockquote > :first-child { margin-top: 0; }
+              .markdown-body blockquote > :last-child { margin-bottom: 0; }
+            </style>
+          </template>
+        </zero-md>
+      </main>
+    </div>
+
+    <!-- zero-md: one script tag, GitHub markdown CSS baked in (proper light/dark contrast). -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/zero-md@3?register"></script>
+    <script>
+      const GUIDES = [
+        { id: "overview", label: "Overview" },
+        { id: "auth", label: "API Key Authentication" },
+        { id: "place_order", label: "Placing an Order (SOR)" },
+        { id: "websocket", label: "WebSocket API" },
+      ];
+
+      const doc = new URLSearchParams(location.search).get("doc");
+      const errorEl = document.getElementById("error");
+      const listEl = document.getElementById("guide-list");
+
+      listEl.innerHTML = GUIDES.map(
+        (g) =>
+          `<li><a class="guide-link${g.id === doc ? " active" : ""}" href="./guide.html?doc=${g.id}">${g.label}</a></li>`
+      ).join("");
+
+      if (!doc || !GUIDES.some((g) => g.id === doc)) {
+        errorEl.textContent = "Unknown guide.";
+        errorEl.hidden = false;
+        document.getElementById("viewer").remove();
+      } else {
+        document.getElementById("viewer").setAttribute("src", `./GUIDES/${doc}.md`);
+        document.title = `YoungPlatform API Guide – ${doc}`;
+      }
+
+      // Guides cross-link to each other with relative .md paths (correct when the
+      // markdown is read on GitHub). In this rendered viewer, reroute those clicks
+      // to the rendered pages instead of navigating to raw markdown. Links live in
+      // zero-md's shadow DOM, so read the anchor from the composed event path.
+      document.addEventListener("click", (e) => {
+        const anchor = e.composedPath().find((el) => el.tagName === "A" && el.href);
+        if (!anchor) return;
+        let url;
+        try {
+          url = new URL(anchor.href, location.href); // zero-md resolves links to absolute
+        } catch (_) {
+          return;
+        }
+        if (url.origin !== location.origin) return; // external link — leave it
+        const md = url.pathname.match(/([\w-]+)\.md$/);
+        if (md) {
+          e.preventDefault();
+          location.href = `./guide.html?doc=${md[1]}`;
+        } else if (/openapi\.html$/.test(url.pathname)) {
+          e.preventDefault();
+          location.href = "./openapi.html";
+        }
+      });
+    </script>
+  </body>
+</html>

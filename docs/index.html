@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YoungPlatform API Docs</title>
+    <link rel="icon" href="./yp_logo.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./toolbar.js" defer></script>
+  </head>
+  <body>
+    <div class="home">
+      <header>
+        <h1>Young Platform PRO API Docs</h1>
+        <p class="subtitle">Guides and API reference for the Trader API</p>
+      </header>
+      <a class="home-banner home-banner--warn" href="./guide.html?doc=auth">
+        <span class="home-banner-icon" aria-hidden="true">⚠️</span>
+        <span class="home-banner-text">
+          <strong>Migrating from the v4 APIs?</strong> JWTs now require an
+          <code>aud</code> claim of <code>"trader"</code>. See the
+          <span class="home-banner-cta">Authentication guide&nbsp;&rarr;</span>
+        </span>
+      </a>
+      <main>
+        <section>
+          <h2>Guides</h2>
+          <ul class="card-list">
+            <li><a class="card-link" href="./guide.html?doc=overview">Overview</a></li>
+            <li><a class="card-link" href="./guide.html?doc=auth">API Key Authentication</a></li>
+            <li><a class="card-link" href="./guide.html?doc=place_order">Placing an Order (SOR)</a></li>
+            <li><a class="card-link" href="./guide.html?doc=websocket">WebSocket API</a></li>
+          </ul>
+        </section>
+      </main>
+      <a class="home-banner home-banner--info" href="./openapi.html">
+        <span class="home-banner-icon" aria-hidden="true">📖</span>
+        <span class="home-banner-text">
+          <strong>OpenAPI Reference</strong> — full request/response schemas for
+          every Trader endpoint.
+          <span class="home-banner-cta">Browse the reference&nbsp;&rarr;</span>
+        </span>
+      </a>
+    </div>
+  </body>
+</html>

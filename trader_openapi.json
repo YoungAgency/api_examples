@@ -1,0 +1,1391 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "description": "YoungPlatform API for real-time market data and Smart Order Routing (SOR) trading.",
+    "title": "YoungPlatform API",
+    "contact": {},
+    "version": "1.0"
+  },
+  "paths": {
+    "/private/balance": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyId": [],
+            "Bearer": []
+          }
+        ],
+        "description": "Retrieve the authenticated customer's spendable balances, one entry per currency and vault. Balances are served from a cache, so a just-settled order may take a moment to be reflected. Authenticated via API key.",
+        "tags": [
+          "trader-private"
+        ],
+        "summary": "Get balances",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderBalances"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/private/profile": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyId": [],
+            "Bearer": []
+          }
+        ],
+        "description": "Retrieve the authenticated customer's trading profile: the SOR fee discount, the trailing 30-day EUR volume, the fee tier that volume currently resolves to (with the effective fee after discount) and the full tier ladder. The tier ladder is identical across markets. Authenticated via API key.",
+        "tags": [
+          "trader-private"
+        ],
+        "summary": "Get trading profile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/private/sor/history": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyId": [],
+            "Bearer": []
+          }
+        ],
+        "description": "Retrieve the authenticated customer's SOR orders, most recent first, with keyset pagination: while has_more is true, pass next_cursor.timestamp as before and next_cursor.id as before_id to fetch the next page (limit is capped at 100). status filters by order status: 1 (New), 2 (PartiallyFilled), 3 (Filled), 4 (Cancelled), 5 (Expired), 6 (Rejected). To list individual fills, use GET /private/sor/orders/matches/history. Authenticated via API key.",
+        "tags": [
+          "trader-private"
+        ],
+        "summary": "List historical SOR orders",
+        "parameters": [
+          {
+            "description": "Filter by market (e.g. BTC-EUR)",
+            "name": "market",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Cursor: RFC3339 timestamp of last seen item",
+            "name": "before",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Cursor: OrderId of last seen item at before timestamp",
+            "name": "before_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Page size (default 100)",
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Filter by order status (1=New 2=PartiallyFilled 3=Filled 4=Cancelled 5=Expired 6=Rejected)",
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SorOrderPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/private/sor/orders": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyId": [],
+            "Bearer": []
+          }
+        ],
+        "description": "Submit a LIMIT order for execution via Smart Order Routing (SOR). The request is accepted (202) once the order is validated, the debited balance is locked and the order is persisted; execution then happens asynchronously \u2014 poll GET /private/sor/orders/{client_order_id} for the outcome. side is 1 (buy) or 2 (sell); type is 1 (LIMIT, the only supported type); time_in_force is 1 (FOK, all-or-nothing) or 2 (IOC, partial fills allowed, remainder cancelled). quantity and price are decimal strings in base and quote currency respectively. client_order_id is REQUIRED and must be a UUID: it is the idempotency key, so you can safely retry a timed-out request with the same value and reconcile the order afterwards. Authenticated via API key with the TRADE permission.",
+        "tags": [
+          "trader-private"
+        ],
+        "summary": "Place a SOR order",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceSorOrderClient"
+              }
+            }
+          },
+          "description": "SOR order request",
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SorOrder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/private/sor/orders/matches/history": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyId": [],
+            "Bearer": []
+          }
+        ],
+        "description": "Retrieve the authenticated customer's individual SOR fills (matches) across all their orders, most recent first, with keyset pagination: while has_more is true, pass next_cursor.timestamp as before and next_cursor.id as before_id to fetch the next page (limit is capped at 100). Each match references its parent order by client_order_id and carries the market, venue, executed quantity/price/amount and venue fee. Authenticated via API key.",
+        "tags": [
+          "trader-private"
+        ],
+        "summary": "List historical SOR matches",
+        "parameters": [
+          {
+            "description": "Filter by market (e.g. BTC-EUR)",
+            "name": "market",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Cursor: RFC3339 timestamp of last seen item",
+            "name": "before",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Cursor: match id of last seen item at before timestamp",
+            "name": "before_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Page size (default 100)",
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SorMatchPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/private/sor/orders/{client_order_id}": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyId": [],
+            "Bearer": []
+          }
+        ],
+        "description": "Retrieve the current state of a SOR order placed by the authenticated customer, including matched quantity/amount, fee and per-venue matches once executed. status is 1 (New), 2 (PartiallyFilled), 3 (Filled), 4 (Cancelled), 5 (Expired) or 6 (Rejected); an unmatched FOK/IOC order ends up Cancelled. Poll this endpoint after placing an order (or after a placement timeout, using the same client_order_id) to reconcile the outcome. Returns 404 if the order does not exist or belongs to a different customer. Authenticated via API key.",
+        "tags": [
+          "trader-private"
+        ],
+        "summary": "Get a SOR order by client order ID",
+        "parameters": [
+          {
+            "description": "Client order ID (the UUID supplied at placement)",
+            "name": "client_order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SorOrder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/charts/{market}": {
+      "get": {
+        "description": "Retrieve historical OHLC candles for a market, most recent first. interval is the candle size in minutes (1, 5, 15, 60, 240, 1440); to is the upper bound of the window as an ISO-8601 date-time (omit for the latest) and is inclusive of a candle's open_at \u2014 to paginate backwards, pass a timestamp just before the oldest returned open_at. Volume/amount fields are not populated yet. No authentication required.",
+        "tags": [
+          "trader-public"
+        ],
+        "summary": "Get OHLC charts",
+        "parameters": [
+          {
+            "description": "Market symbol, e.g. BTC-EUR",
+            "name": "market",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Candle interval in minutes (1, 5, 15, 60, 240, 1440)",
+            "name": "interval",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1440
+            }
+          },
+          {
+            "description": "Maximum number of candles",
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          },
+          {
+            "description": "Upper bound of the window as an ISO-8601 date-time (omit for the latest)",
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderCharts"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/liquidity/{market}": {
+      "get": {
+        "description": "Retrieve the liquidity currently available for a market as price levels (bids/asks) plus a mid price. This is indicative liquidity aggregated across sources \u2014 not the order book of a single trading venue \u2014 so it should be treated as an estimate of executable depth. No authentication required.",
+        "tags": [
+          "trader-public"
+        ],
+        "summary": "Get aggregated liquidity",
+        "parameters": [
+          {
+            "description": "Market symbol, e.g. BTC-EUR",
+            "name": "market",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderBookResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/markets": {
+      "get": {
+        "description": "Retrieve every tradable market with its SOR trading parameters: trading toggles, precisions and per-order quantity/amount bounds. Use it to discover which markets exist and to validate an order client-side before placing it. No authentication required.",
+        "tags": [
+          "trader-public"
+        ],
+        "summary": "List markets",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderMarkets"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/tickers": {
+      "get": {
+        "description": "Retrieve the rolling OHLC ticker snapshot for every market in a single call. Note the compact field keys (mkt/o/h/l/c/qty/amt/t); t is epoch milliseconds. No authentication required.",
+        "tags": [
+          "trader-public"
+        ],
+        "summary": "List tickers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderTickers"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/tickers/{market}": {
+      "get": {
+        "description": "Retrieve the rolling OHLC ticker snapshot for a single market. Note the compact field keys (mkt/o/h/l/c/qty/amt/t); t is epoch milliseconds. No authentication required.",
+        "tags": [
+          "trader-public"
+        ],
+        "summary": "Get ticker",
+        "parameters": [
+          {
+            "description": "Market symbol, e.g. BTC-EUR",
+            "name": "market",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ticker"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "/api/v1/trader"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyId": {
+        "description": "ID of the API key whose secret signed the JWT. Must be sent together with the Authorization header.",
+        "type": "apiKey",
+        "name": "X-Api-Key-Id",
+        "in": "header"
+      },
+      "Bearer": {
+        "description": "Type \"Bearer\" followed by a space and JWT token",
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "Cursor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Identifier of the last item on this page; pass it as the next request's\ntie-breaker (e.g. before_id).",
+            "type": "integer"
+          },
+          "timestamp": {
+            "description": "Creation timestamp of the last item on this page; pass it as the next\nrequest's upper bound (e.g. before).",
+            "type": "string"
+          }
+        }
+      },
+      "SorMatchPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Items on this page, most recent first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SorOrderMatchItem"
+            }
+          },
+          "has_more": {
+            "description": "Whether more items exist beyond this page.",
+            "type": "boolean"
+          },
+          "next_cursor": {
+            "description": "Cursor to fetch the next page; omitted on the last page.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Cursor"
+              }
+            ]
+          }
+        }
+      },
+      "SorOrderMatchItem": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "description": "Filled amount (quantity x price), in quote currency.",
+            "type": "string"
+          },
+          "client_order_id": {
+            "description": "Client order id of the parent SOR order this fill belongs to.",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Time of the fill.",
+            "type": "string"
+          },
+          "fee": {
+            "description": "Venue fee for this fill, in fee_currency.",
+            "type": "string"
+          },
+          "fee_currency": {
+            "description": "Currency the venue fee is denominated in.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Match id; pass it as before_id (with created_at as before) to resume\nkeyset pagination from this fill. Matches NextCursor.ID.",
+            "type": "integer"
+          },
+          "market": {
+            "description": "Market symbol in BASE-QUOTE format.",
+            "type": "string",
+            "example": "BTC-EUR"
+          },
+          "price": {
+            "description": "Fill price, in quote currency.",
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Filled quantity, in base currency.",
+            "type": "string"
+          },
+          "side": {
+            "description": "Side of the parent SOR order: 1 (Buy) or 2 (Sell).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Side"
+              }
+            ]
+          },
+          "venue": {
+            "description": "Execution venue that filled this portion of the order.",
+            "type": "string"
+          },
+          "venue_match_id": {
+            "description": "Fill id assigned by the venue.",
+            "type": "string"
+          },
+          "venue_order_id": {
+            "description": "Order id assigned by the venue.",
+            "type": "string"
+          }
+        }
+      },
+      "SorOrderPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Items on this page, most recent first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SorOrder"
+            }
+          },
+          "has_more": {
+            "description": "Whether more items exist beyond this page.",
+            "type": "boolean"
+          },
+          "next_cursor": {
+            "description": "Cursor to fetch the next page; omitted on the last page.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Cursor"
+              }
+            ]
+          }
+        }
+      },
+      "PlaceSorOrderClient": {
+        "type": "object",
+        "required": [
+          "market",
+          "price",
+          "quantity",
+          "time_in_force",
+          "type"
+        ],
+        "properties": {
+          "client_order_id": {
+            "description": "ClientOrderId is the caller-supplied idempotency key (a UUID) \u2014 required on\nthe trader HTTP API (the internal path generates one when empty). Retrying\nwith the same value never places a second order, and the order can be\nreconciled after a timeout via GetOrder. Validated as a UUID service-side.",
+            "type": "string"
+          },
+          "market": {
+            "description": "Market symbol in BASE-QUOTE format.",
+            "type": "string",
+            "example": "BTC-EUR"
+          },
+          "price": {
+            "description": "Limit price, in quote currency (decimal string).",
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Quantity to trade, in base currency (decimal string).",
+            "type": "string"
+          },
+          "side": {
+            "description": "Order side: 1 = buy, 2 = sell.",
+            "enum": [
+              1,
+              2
+            ],
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Side"
+              }
+            ]
+          },
+          "time_in_force": {
+            "description": "Time in force: 1 = FOK (all-or-nothing), 2 = IOC (partial fills allowed,\nremainder cancelled).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SorTimeInForce"
+              }
+            ]
+          },
+          "type": {
+            "description": "Order type: 1 = LIMIT (the only supported type).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SorOrderType"
+              }
+            ]
+          }
+        }
+      },
+      "Balance": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "description": "Spendable amount in this vault.",
+            "type": "string"
+          },
+          "currency": {
+            "description": "Currency code the balance is denominated in.",
+            "type": "string",
+            "example": "BTC"
+          },
+          "vault_id": {
+            "description": "Numeric ID of the vault.",
+            "type": "integer"
+          },
+          "vault_type": {
+            "description": "Vault type holding the balance (e.g. the spot wallet or a dedicated\ntrading vault).",
+            "type": "string"
+          }
+        }
+      },
+      "FeeTier": {
+        "type": "object",
+        "properties": {
+          "fee_fixed": {
+            "description": "Fixed fee component of the tier.",
+            "type": "number"
+          },
+          "id": {
+            "description": "Tier identifier.",
+            "type": "string"
+          },
+          "max_volume_eur": {
+            "description": "Upper volume bound of the tier, in EUR (exclusive); null on the last\n(unbounded) tier.",
+            "type": "number"
+          },
+          "min_volume_eur": {
+            "description": "Lower volume bound of the tier, in EUR (inclusive).",
+            "type": "number"
+          },
+          "perc_fee_bps": {
+            "description": "Percentage fee of the tier, in basis points (1 bps = 0.01%).",
+            "type": "integer"
+          }
+        }
+      },
+      "OhlcCandle": {
+        "type": "object",
+        "properties": {
+          "close": {
+            "description": "Closing price of the candle, in quote currency.",
+            "type": "string"
+          },
+          "close_at": {
+            "description": "End of the candle window.",
+            "type": "string"
+          },
+          "high": {
+            "description": "Highest price of the candle, in quote currency.",
+            "type": "string"
+          },
+          "low": {
+            "description": "Lowest price of the candle, in quote currency.",
+            "type": "string"
+          },
+          "market": {
+            "description": "Market symbol in BASE-QUOTE format.",
+            "type": "string",
+            "example": "BTC-EUR"
+          },
+          "open": {
+            "description": "Opening price of the candle, in quote currency.",
+            "type": "string"
+          },
+          "open_at": {
+            "description": "Start of the candle window (inclusive).",
+            "type": "string"
+          },
+          "rfq_amount": {
+            "description": "RFQ traded amount in quote currency.",
+            "type": "string"
+          },
+          "rfq_volume": {
+            "description": "RFQ traded volume in base currency.",
+            "type": "string"
+          },
+          "sor_amount": {
+            "description": "SOR traded amount in quote currency.",
+            "type": "string"
+          },
+          "sor_volume": {
+            "description": "SOR traded volume in base currency.",
+            "type": "string"
+          }
+        }
+      },
+      "ProfileTier": {
+        "type": "object",
+        "properties": {
+          "effective_fee_bps": {
+            "description": "EffectiveFeeBps is the tier's fee bps after applying SorDiscountPercentage.",
+            "type": "integer"
+          },
+          "tier": {
+            "description": "The resolved fee tier (volume band and undiscounted fees).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FeeTier"
+              }
+            ]
+          }
+        }
+      },
+      "Side": {
+        "type": "integer",
+        "format": "int32",
+        "enum": [
+          1,
+          2
+        ],
+        "x-enum-varnames": [
+          "SideBuy",
+          "SideSell"
+        ]
+      },
+      "SorOrder": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "description": "Requested amount (quantity x price), in quote currency.",
+            "type": "string"
+          },
+          "cid": {
+            "description": "Customer ID owning the order.",
+            "type": "integer"
+          },
+          "client_order_id": {
+            "description": "Caller-supplied idempotency key (UUID); the stable reference for lookups.",
+            "type": "string"
+          },
+          "closed_at": {
+            "description": "Time the order reached a terminal status (null while still open).",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Time the order was accepted.",
+            "type": "string"
+          },
+          "fee": {
+            "description": "Fee charged on the order, in quote currency.",
+            "type": "string"
+          },
+          "ip": {
+            "description": "IP the order was placed from (not returned on the trader API).",
+            "type": "string"
+          },
+          "market": {
+            "description": "Market symbol in BASE-QUOTE format.",
+            "type": "string",
+            "example": "BTC-EUR"
+          },
+          "matched_amount": {
+            "description": "Amount filled so far, in quote currency.",
+            "type": "string"
+          },
+          "matched_quantity": {
+            "description": "Quantity filled so far, in base currency.",
+            "type": "string"
+          },
+          "matches": {
+            "description": "Individual fills; populated on order lookup and, when with_trades=true,\non order history.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SorOrderMatch"
+            }
+          },
+          "order_id": {
+            "description": "Internal numeric order ID (0 in API responses; use client_order_id).",
+            "type": "integer"
+          },
+          "price": {
+            "description": "Limit price, in quote currency.",
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Requested quantity, in base currency.",
+            "type": "string"
+          },
+          "side": {
+            "description": "Order side: 1 = buy, 2 = sell.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Side"
+              }
+            ]
+          },
+          "status": {
+            "description": "Order status: 1 = New, 2 = PartiallyFilled, 3 = Filled, 4 = Cancelled,\n5 = Expired, 6 = Rejected. Unmatched FOK/IOC orders end up Cancelled.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SorOrderStatus"
+              }
+            ]
+          },
+          "time_in_force": {
+            "description": "Time in force: 1 = FOK (all-or-nothing), 2 = IOC (partial fills allowed).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SorTimeInForce"
+              }
+            ]
+          },
+          "type": {
+            "description": "Order type: 1 = LIMIT (the only supported type).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SorOrderType"
+              }
+            ]
+          },
+          "updated_at": {
+            "description": "Time of the last status change.",
+            "type": "string"
+          }
+        }
+      },
+      "SorOrderMatch": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "description": "Filled amount (quantity x price), in quote currency.",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Time of the fill.",
+            "type": "string"
+          },
+          "fee": {
+            "description": "Venue fee for this fill, in fee_currency.",
+            "type": "string"
+          },
+          "fee_currency": {
+            "description": "Currency the venue fee is denominated in.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Internal numeric match ID.",
+            "type": "integer"
+          },
+          "price": {
+            "description": "Fill price, in quote currency.",
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Filled quantity, in base currency.",
+            "type": "string"
+          },
+          "sor_order_id": {
+            "description": "Internal numeric ID of the parent SOR order.",
+            "type": "integer"
+          },
+          "venue": {
+            "description": "Execution venue that filled this portion of the order.",
+            "type": "string"
+          },
+          "venue_match_id": {
+            "description": "Fill ID assigned by the venue.",
+            "type": "string"
+          },
+          "venue_order_id": {
+            "description": "Order ID assigned by the venue.",
+            "type": "string"
+          }
+        }
+      },
+      "SorOrderStatus": {
+        "type": "integer",
+        "format": "int32",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "x-enum-varnames": [
+          "SorOrderStatusNew",
+          "SorOrderStatusPartiallyFilled",
+          "SorOrderStatusFilled",
+          "SorOrderStatusCancelled",
+          "SorOrderStatusExpired",
+          "SorOrderStatusRejected"
+        ]
+      },
+      "SorOrderType": {
+        "type": "integer",
+        "format": "int32",
+        "enum": [
+          1
+        ],
+        "x-enum-varnames": [
+          "SorOrderTypeLimit"
+        ]
+      },
+      "SorTimeInForce": {
+        "type": "integer",
+        "format": "int32",
+        "enum": [
+          1,
+          2
+        ],
+        "x-enum-varnames": [
+          "SorTimeInForceFOK",
+          "SorTimeInForceIOC"
+        ]
+      },
+      "Ticker": {
+        "type": "object",
+        "properties": {
+          "amt": {
+            "description": "Traded amount over the window, in quote currency.",
+            "type": "string"
+          },
+          "c": {
+            "description": "Last price, in quote currency.",
+            "type": "string"
+          },
+          "h": {
+            "description": "Highest price of the window, in quote currency.",
+            "type": "string"
+          },
+          "l": {
+            "description": "Lowest price of the window, in quote currency.",
+            "type": "string"
+          },
+          "mkt": {
+            "description": "Market symbol in BASE-QUOTE format.",
+            "type": "string",
+            "example": "BTC-EUR"
+          },
+          "o": {
+            "description": "Opening price of the window, in quote currency.",
+            "type": "string"
+          },
+          "qty": {
+            "description": "Traded quantity over the window, in base currency.",
+            "type": "string"
+          },
+          "t": {
+            "description": "Snapshot time as Unix epoch milliseconds.",
+            "type": "integer"
+          }
+        }
+      },
+      "TraderProfile": {
+        "type": "object",
+        "properties": {
+          "cid": {
+            "description": "Customer ID the profile belongs to.",
+            "type": "integer"
+          },
+          "rolling_volume_eur": {
+            "description": "RollingVolumeEur is the customer's trailing 30-day EUR volume, refreshed\nonce a day at 05:00 UTC. The tier/volume axis is float64-native in the\ndomain (see FeeTier.MinVolumeEur), so it is kept as float64.",
+            "type": "number"
+          },
+          "sor_discount_percentage": {
+            "description": "SorDiscountPercentage is the discount currently applied to SOR orders at\nthe customer's rolling volume: the club discount below the volume cap, the\nnon-club (fee-user-group) discount once the volume exceeds the cap.",
+            "type": "string"
+          },
+          "sor_tier": {
+            "description": "SorTier is the SOR fee tier the rolling volume resolves to (nil when no\ntier matches).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfileTier"
+              }
+            ]
+          },
+          "sor_tiers": {
+            "description": "SorTiers is the full SOR fee tier ladder (volume bands and fees), so a\ncaller can see all thresholds \u2014 e.g. how much volume separates the\ncustomer from the next tier. The ladder is identical across markets.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeeTier"
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "Machine-readable error code.",
+            "type": "string"
+          },
+          "message": {
+            "description": "Human-readable description of the error.",
+            "type": "string"
+          }
+        }
+      },
+      "TraderBalances": {
+        "type": "object",
+        "properties": {
+          "balances": {
+            "description": "Per-vault balances of the authenticated customer.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Balance"
+            }
+          }
+        }
+      },
+      "TraderBookLevel": {
+        "type": "object",
+        "properties": {
+          "price": {
+            "description": "Level price, in quote currency.",
+            "type": "string"
+          },
+          "volume": {
+            "description": "Liquidity available at this price, in base currency.",
+            "type": "string"
+          }
+        }
+      },
+      "TraderBookResponse": {
+        "type": "object",
+        "properties": {
+          "asks": {
+            "description": "Sell-side liquidity levels, best (lowest) price first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraderBookLevel"
+            }
+          },
+          "bids": {
+            "description": "Buy-side liquidity levels, best (highest) price first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraderBookLevel"
+            }
+          },
+          "market": {
+            "description": "Market symbol in BASE-QUOTE format.",
+            "type": "string",
+            "example": "BTC-EUR"
+          },
+          "mid_price": {
+            "description": "Midpoint between the best bid and best ask (\"0\" when the book is empty).",
+            "type": "string"
+          },
+          "time": {
+            "description": "Time the liquidity snapshot was taken.",
+            "type": "string"
+          }
+        }
+      },
+      "TraderCharts": {
+        "type": "object",
+        "properties": {
+          "candles": {
+            "description": "OHLC candles, most recent first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OhlcCandle"
+            }
+          }
+        }
+      },
+      "TraderMarketDetails": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "description": "Whether the market is currently tradable at all.",
+            "type": "boolean"
+          },
+          "amount_precision": {
+            "description": "Maximum number of decimal places on amounts (quote currency).",
+            "type": "integer"
+          },
+          "buy_enabled": {
+            "description": "Whether buy orders are currently accepted.",
+            "type": "boolean"
+          },
+          "max_order_amount": {
+            "description": "Maximum order amount (quantity x price), in quote currency (0 = no cap).",
+            "type": "number"
+          },
+          "max_order_quantity": {
+            "description": "Maximum order quantity, in base currency (0 = no cap).",
+            "type": "number"
+          },
+          "min_order_amount": {
+            "description": "Minimum order amount (quantity x price), in quote currency.",
+            "type": "number"
+          },
+          "min_order_quantity": {
+            "description": "Minimum order quantity, in base currency.",
+            "type": "number"
+          },
+          "min_tick_size": {
+            "description": "Smallest price increment, in quote currency.",
+            "type": "number"
+          },
+          "price_precision": {
+            "description": "Maximum number of decimal places accepted on order price (quote currency).",
+            "type": "integer"
+          },
+          "quantity_precision": {
+            "description": "Maximum number of decimal places accepted on order quantity (base currency).",
+            "type": "integer"
+          },
+          "sell_enabled": {
+            "description": "Whether sell orders are currently accepted.",
+            "type": "boolean"
+          }
+        }
+      },
+      "TraderMarket": {
+        "type": "object",
+        "properties": {
+          "market": {
+            "description": "Market symbol in BASE-QUOTE format.",
+            "type": "string",
+            "example": "BTC-EUR"
+          },
+          "sor_details": {
+            "description": "SOR trading parameters for this market.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TraderMarketDetails"
+              }
+            ]
+          }
+        }
+      },
+      "TraderMarkets": {
+        "type": "object",
+        "properties": {
+          "markets": {
+            "description": "All tradable markets.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraderMarket"
+            }
+          }
+        }
+      },
+      "TraderTickers": {
+        "type": "object",
+        "properties": {
+          "tickers": {
+            "description": "One ticker snapshot per market.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Ticker"
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "trader-public",
+      "x-displayName": "Market Data (Public)",
+      "description": "Market data endpoints under /public: tradable markets, aggregated liquidity, tickers and OHLC charts. No authentication required."
+    },
+    {
+      "name": "trader-private",
+      "x-displayName": "Trading & Account (Private)",
+      "description": "Account-scoped endpoints under /private: balances, trading profile and SOR order placement/lookup/history. Every request must carry an Authorization: Bearer JWT signed with your API key secret plus the matching X-Api-Key-Id header."
+    }
+  ]
+}

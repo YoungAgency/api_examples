@@ -3,3 +3,9 @@
 .env
 .vscode
 .DS_Store
+**/.venv
+**/__pycache__
+**/.ruff_cache
+/_site
+scripts
+mcp_tmp
