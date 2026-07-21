@@ -32,6 +32,7 @@ from youngplatform_trader_client.api.trader_private import (
     get_private_profile,
     get_private_sor_history,
     get_private_sor_orders_client_order_id,
+    get_private_sor_orders_matches_history,
     post_private_sor_orders,
 )
 from youngplatform_trader_client.api.trader_public import (
@@ -151,12 +152,17 @@ def main() -> int:
         show(
             "GET /private/sor/history",
             lambda: get_private_sor_history.sync_detailed(
-                client=c, limit=5, with_trades=True
+                client=c, limit=5,
             ),
         )
 
+        show(" GET /private/sor/orders/matches", lambda: get_private_sor_orders_matches_history.sync_detailed(
+            client=c, market=args.market, limit=5,
+        ))
+
         if args.place_order:
             place_and_fetch_order(c, args)
+        
     return 0
 
 
