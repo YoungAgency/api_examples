@@ -4,6 +4,9 @@ import websockets # pip install websockets
 
 WS_URL = "wss://api.youngplatform.com/api/socket/ws"
 
+# Run with: uv run --with pyjwt --with websockets --env-file=.env socket_example.py
+
+
 def trader_jwt() -> str:
     # Connect/login carries no body, so hash_payload is sha256(b"").
     iat = int(time.time())
@@ -23,9 +26,8 @@ async def main() -> None:
     }
     async with websockets.connect(WS_URL, additional_headers=headers) as ws:
         await ws.send(json.dumps({
-            "id": "1",
             "method": "subscribe",
-            "events": ["SOR.PI.BTC-EUR", "SOR.EXECUTIONS"],
+            "events": ["SOR.PI.BTC-EUR", "SOR.EXECUTIONS", "LEDGER", "SOR.T.BTC-EUR", "SOR.OHLCV.BTC-EUR.1m"],
         }))
         async for raw in ws:
             print(json.loads(raw))

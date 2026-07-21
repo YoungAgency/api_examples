@@ -82,7 +82,7 @@ uv run examples/python/trader_jwt/trader_jwt.py                              # e
 uv run examples/python/trader_jwt/trader_jwt.py --body '{"market":"BTC-EUR"}' # bind to a JSON body
 ```
 
-See [trader_jwt.py](https://github.com/YoungAgency/api_examples/blob/v5/examples/python/trader_jwt/trader_jwt.py). Because the token is body-bound and short-lived, mint it **per request**; the generated SDK does this automatically via `young_auth.TraderAuth` (an `httpx.Auth` that hashes each request body and sets both headers) — see [trader_sdk/](https://github.com/YoungAgency/api_examples/tree/v5/examples/python/trader_sdk).
+See [trader_jwt.py](https://github.com/YoungAgency/youngplatform_api_docs/blob/main/examples/python/trader_jwt/trader_jwt.py). Because the token is body-bound and short-lived, mint it **per request**; the generated SDK does this automatically via `young_auth.TraderAuth` (an `httpx.Auth` that hashes each request body and sets both headers) — see [trader_sdk/](https://github.com/YoungAgency/youngplatform_api_docs/tree/main/examples/python/trader_sdk).
 
 #### Bare GET example (no SDK)
 
@@ -123,4 +123,4 @@ The `hash_payload` claim must be the SHA-256 hex digest of the **exact bytes** s
 ## See also
 
 - [Placing an Order (SOR)](./place_order.md) — full POST request/response schema, place → wait → poll example.
-- REST and WebSocket usage in the repository [README](https://github.com/YoungAgency/api_examples/blob/v5/README.md).
+- REST and WebSocket usage in the repository [README](https://github.com/YoungAgency/youngplatform_api_docs/blob/main/README.md).

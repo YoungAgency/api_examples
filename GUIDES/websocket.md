@@ -378,4 +378,4 @@ Public topics need no credentials — drop the `headers` argument and subscribe 
 
 - [API Key Authentication](./auth.md) — JWT claims, `hash_payload`, and ready-to-run token minters.
 - [Placing an Order (SOR)](./place_order.md) — REST place → wait → poll flow for SOR orders.
-- Repository [README](https://github.com/YoungAgency/api_examples/blob/v5/README.md).
+- Repository [README](https://github.com/YoungAgency/youngplatform_api_docs/blob/main/README.md).

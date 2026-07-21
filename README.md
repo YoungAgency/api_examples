@@ -10,7 +10,7 @@ The trader surface is versioned under `/api/v1/trader`:
 
 The full contract is in [trader_openapi.json](./trader_openapi.json) (OpenAPI 3.0),
 rendered as browsable reference docs at
-**[youngagency.github.io/api_examples](https://youngagency.github.io/api_examples/)**.
+**[youngagency.github.io/youngplatform_api_docs](https://youngagency.github.io/youngplatform_api_docs/)**.
 
 ## Authentication
 

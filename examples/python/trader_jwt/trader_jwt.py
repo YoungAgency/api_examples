@@ -79,5 +79,5 @@ if __name__ == "__main__":
     token = generate_trader_jwt(public_key, private_key, args.body.encode())
 
     # Paste these into your HTTP/WebSocket client (see GUIDES/jwt.md).
-    print(f"Authorization: Bearer {token}")
     print(f"X-Api-Key-Id: {key_id}")
+    print(f"Authorization: Bearer {token}")
