@@ -6,6 +6,8 @@ Young Platform executes orders via **Smart Order Routing (SOR)**:
 
 See the [OpenAPI reference](../docs/openapi.html) for the full schema (`PlaceSorOrderClient`, `SorOrder`).
 
+> If you receive status code 403 it means your API key is missing the **trade** permission.
+
 ## Endpoints
 
 ```
