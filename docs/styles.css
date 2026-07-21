@@ -1,0 +1,301 @@
+/* Shared styles for the YoungPlatform API docs site.
+   Design tokens live in :root and are overridden for dark mode; every page
+   (index, guide, openapi) links this file and gets the toolbar from toolbar.js. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Brand */
+  --accent: #00d372;         /* logo green — fills, borders, active states */
+  --accent-ink: #009e55;     /* darker green for accent-colored TEXT on light bg */
+
+  /* Neutrals (light) */
+  --bg: #ffffff;
+  --fg: #1a1a1a;
+  --muted: #6b7280;
+  --surface: rgba(127, 127, 127, 0.08);
+  --surface-hover: rgba(127, 127, 127, 0.18);
+  --border: rgba(127, 127, 127, 0.3);
+  --border-strong: rgba(127, 127, 127, 0.5);
+
+  /* Layout */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --maxw: 900px;
+  --toolbar-h: 56px;
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent-ink: #2ce68f;   /* lighter green reads better on dark text bg */
+    --bg: #0d0f12;
+    --fg: #e6e6e6;
+    --muted: #9ca3af;
+    --surface: rgba(127, 127, 127, 0.12);
+    --surface-hover: rgba(127, 127, 127, 0.24);
+    --border: rgba(127, 127, 127, 0.32);
+    --border-strong: rgba(127, 127, 127, 0.5);
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* clip, not hidden: overflow:hidden on html/body turns them into a scroll
+   container, which breaks position:sticky for every descendant (e.g. the
+   Scalar sidebar). clip blocks the sideways scroll without that side effect. */
+html { overflow-x: clip; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--fg);
+  background: var(--bg);
+  overflow-x: clip;
+}
+
+a { color: var(--accent-ink); }
+
+/* ---- Toolbar (injected by toolbar.js) ---- */
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--toolbar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.2) blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar .brand {
+  display: inline-flex;
+  align-items: center;
+  color: var(--fg);
+  text-decoration: none;
+}
+.toolbar .brand svg { height: 22px; width: auto; display: block; }
+.toolbar .brand .logo-mark { display: none; } /* mark-only shown on mobile */
+
+.toolbar nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.toolbar nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--fg);
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+.toolbar nav a:hover { background: var(--surface-hover); opacity: 1; }
+.toolbar nav a.active {
+  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  opacity: 1;
+}
+.toolbar nav a.icon-link { padding: 0.4rem 0.5rem; }
+.toolbar nav a.icon-link svg { height: 18px; width: 18px; display: block; }
+
+/* Narrow screens: shrink the logo to the mark and let the bar wrap if needed,
+   so the whole nav stays visible with a single vertical scroll. */
+@media (max-width: 560px) {
+  .toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--toolbar-h);
+    padding: 0.5rem 1rem;
+    row-gap: 0.25rem;
+  }
+  .toolbar nav { flex-wrap: wrap; }
+  .toolbar .brand .logo-full { display: none; }
+  .toolbar .brand .logo-mark { display: block; }
+}
+
+/* ---- Home (index.html) ---- */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3.5rem 1.5rem;
+  gap: 3rem;
+}
+.home header { text-align: center; width: 100%; max-width: var(--maxw); }
+.home h1 { overflow-wrap: break-word; }
+.home h1 { margin: 0; font-size: 1.75rem; }
+.home .subtitle { margin: 0.5rem 0 0; color: var(--muted); }
+/* Full-width home banners — a linked callout used instead of a card section.
+   Base holds the layout; --warn (amber) and --info (brand green) set the color. */
+.home-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: var(--maxw);
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.home-banner:hover { background: var(--surface-hover); }
+.home-banner-icon { font-size: 1.1rem; line-height: 1; }
+.home-banner-text { line-height: 1.4; }
+.home-banner code {
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+  background: var(--surface);
+  font-size: 0.9em;
+}
+.home-banner-cta { color: var(--accent-ink); font-weight: 600; white-space: nowrap; }
+
+/* Warning (amber) — migration notice; pulled up snug under the header. */
+.home-banner--warn {
+  margin-top: -1.5rem;
+  border-color: rgba(245, 166, 35, 0.5);
+  border-left-color: #f5a623;
+  background: rgba(245, 166, 35, 0.12);
+}
+.home-banner--warn:hover { background: rgba(245, 166, 35, 0.2); }
+
+/* Info (brand green) — API reference pointer. */
+.home-banner--info {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.home-banner--info:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+
+.home main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: var(--maxw);
+}
+.home section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+.home section h2 { margin-top: 0; font-size: 1.1rem; }
+
+ul.card-list { list-style: none; padding: 0; margin: 0; }
+ul.card-list li + li { margin-top: 0.5rem; }
+a.card-link {
+  display: block;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-weight: 500;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+a.card-link:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+
+/* ---- Guide (guide.html) ---- */
+
+.guide { display: flex; align-items: flex-start; }
+.guide-nav {
+  flex: 0 0 220px;
+  position: sticky;
+  top: var(--toolbar-h);
+  height: calc(100vh - var(--toolbar-h));
+  overflow-y: auto;
+  padding: 2rem 1rem;
+  border-right: 1px solid var(--border);
+}
+.guide-nav a.back {
+  display: block;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+.guide-nav a.back:hover { color: var(--fg); }
+.guide-nav h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin: 0 0 0.75rem;
+}
+.guide-nav ul { list-style: none; margin: 0; padding: 0; }
+.guide-nav li + li { margin-top: 0.25rem; }
+.guide-nav a.guide-link {
+  display: block;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--fg);
+  font-size: 0.95rem;
+}
+.guide-nav a.guide-link:hover { background: var(--surface-hover); }
+.guide-nav a.guide-link.active {
+  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  font-weight: 600;
+}
+.guide main {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+/* zero-md's custom element defaults to display:inline, which lets wide code
+   blocks/tables expand past the viewport. Make it a shrinkable block so its
+   content is capped to the column and long lines scroll inside the block. */
+.guide main zero-md {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+.guide #error { opacity: 0.8; font-style: italic; }
+
+/* ---- OpenAPI (openapi.html) ---- */
+
+/* Scalar's own sidebar assumes it starts at viewport top:0. Our sticky
+   .toolbar sits above it, so tell Scalar about that offset via its official
+   custom-header CSS var, otherwise its internal sticky/fixed layout desyncs
+   from the page scroll. */
+.scalar-wrap {
+  --scalar-custom-header-height: var(--toolbar-h);
+}
+
+@media (max-width: 720px) {
+  .guide { flex-direction: column; }
+  .guide-nav {
+    /* In a column flex, flex-basis:220px would fix the height and turn the
+       sidebar into its own scroll box; reset it so it grows to fit every guide
+       and joins the single page scroll. */
+    flex: 0 0 auto;
+    position: static;
+    height: auto;
+    overflow: visible;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .guide main { width: 100%; max-width: 100%; }
+}

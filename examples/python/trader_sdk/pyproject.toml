@@ -1,0 +1,20 @@
+[project]
+name = "youngplatform-trader-example"
+version = "0.1.0"
+description = "Example uv project: generated Python SDK + tester for the YoungPlatform trader API"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.27",
+    "attrs>=23.2",
+    "pyjwt>=2.8",
+]
+
+[dependency-groups]
+# Tooling used to (re)generate the SDK from the OpenAPI spec — see generate_sdk.sh.
+dev = [
+    "openapi-python-client>=0.29",
+]
+
+[tool.uv]
+package = false

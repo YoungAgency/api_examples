@@ -1,0 +1,52 @@
+name: Deploy API docs to Pages
+
+# Publishes the docs/ site (home page, guide viewer, Scalar OpenAPI reference)
+# together with the root trader_openapi.json and the GUIDES/ markdown sources,
+# so everything is available at the repository's GitHub Pages URL.
+# The spec and guides stay single-source in the repo root; they are copied
+# next to index.html at deploy time so their relative fetch paths resolve.
+
+on:
+  push:
+    branches: [main, v5]
+    paths:
+      - docs/**
+      - GUIDES/**
+      - assets/**
+      - trader_openapi.json
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment; newer pushes cancel in-progress runs.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp -R docs/. _site/                 # all site files (html/css/js)
+          cp -R GUIDES _site/                 # guide markdown sources
+          cp assets/* _site/                  # brand assets at root (yp_logo*.svg)
+          cp trader_openapi.json _site/trader_openapi.json
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
